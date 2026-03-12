@@ -74,7 +74,6 @@ def main() -> None:
         print(f"Webshell Handler Mini\n"
               f"Usage: {sys.argv[0]} <webshell_url> <cmd_param>")
         sys.exit(1)
-        
     url: str = sys.argv[1]
     param: str = sys.argv[2]
     session: Session = Session()

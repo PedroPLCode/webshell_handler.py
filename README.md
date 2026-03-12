@@ -24,6 +24,8 @@ Extended version with additional functionality:
 * command history
 * tab completion
 
+### Feel free to modify, add new features and adapt it for your own use.
+
 ## Requirements
 Python **3.10+**
 Dependency:
@@ -61,6 +63,7 @@ Example PHP webshell.php used by the handler:
 
 # Example GET request:
 http://target/webshell.php?cmd=id
+#You can replace 'id' with any other command you want to execute at target system.
 ```
 
 ## Example Commands (Full Handler)
