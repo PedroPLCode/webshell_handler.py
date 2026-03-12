@@ -1,6 +1,11 @@
 # webshell_history file
 .webshell_history
 
+# typings
+/typings
+typings/*
+*.pyi
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
