@@ -2,7 +2,7 @@
 .webshell_history
 
 # typings
-/typings
+typings/
 typings/*
 *.pyi
 
