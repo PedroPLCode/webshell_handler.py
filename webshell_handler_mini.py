@@ -41,6 +41,8 @@ def print_welcome_message(url: str, param: str):
 def run_command(session: Session, url: str, param: str, cmd: str) -> str:
     """Send a command to the remote webshell and return the response."""
     r: Response = session.get(url, params={param: cmd}, timeout=20, verify=False)
+    if r.status_code != 200:
+            return f"[HTTP {r.status_code}]"
     return r.text.strip()
 
 
