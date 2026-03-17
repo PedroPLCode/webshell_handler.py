@@ -55,6 +55,7 @@ def handle_webshell(session: Session, url: str, param: str):
             cmd: str = input("\nwebshell> ").strip()
 
             if cmd == "":
+                print("\nNo command entered.")
                 continue
 
             if cmd == "exit":
@@ -62,6 +63,11 @@ def handle_webshell(session: Session, url: str, param: str):
 
             if cmd in ["clear", "cls"]:
                 os.system("clear")
+                continue
+
+            if cmd == "help":
+                print(f"\nTarget URL: {url}\nCommand parameter: {param}"
+                      f"\nAvailable commands: help, exit, clear")
                 continue
 
             output: str = run_command(session, url, param, cmd)

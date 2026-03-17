@@ -214,6 +214,7 @@ def handle_webshell(session: Session, url: str, param: str) -> None:
             parts: list[str] = user_input.split()
             
             if not parts:
+                print("\nNo command entered.")
                 continue
             
             cmd: str = parts[0].lower()
